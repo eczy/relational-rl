@@ -25,7 +25,7 @@ class BaselineQLearningAgent(object):
         self.update_target()
         self.target.eval()
 
-        self.optim = optim.RMSprop(self.policy.parameters())
+        self.optim = optim.RMSprop(self.policy.parameters(),lr=2e-4, eps=0.1, weight_decay=0.99)
         self.memory = QReplayMemory(memory_capacity)
 
 

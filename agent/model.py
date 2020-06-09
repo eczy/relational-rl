@@ -56,7 +56,7 @@ class ConcatCoords(nn.Module):
     # TODO: generalize to arbitrary dimensions
     def forward(self, x):
         N, C, H, W = x.shape
-        coords = torch.empty(N, 2, H, W).double()
+        coords = torch.empty(N, 2, H, W).double().to(x.device)
         # x coordinate
         coords[:, 0, :, :] = 2 * (torch.arange(W, dtype=torch.double).reshape(-1, 1).repeat(1, W) / W) - 1
         # y coordinate

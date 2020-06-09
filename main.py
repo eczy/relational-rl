@@ -14,6 +14,8 @@ def main():
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     env = BoxWorld(12, 4, 2, 2)
     agent = BaselineQLearningAgent(
         n_actions=env.action_space.n,
@@ -22,23 +24,23 @@ def main():
         eps=0.9,
         eps_min=0.05,
         eps_decay=200,
-        memory_capacity=1000
+        memory_capacity=1000,
+        device=device
     )
     env.reset()
 
     episodes = 100
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     episode_lengths = []
     target_update = 10
 
     for episode in range(episodes):
         state = env.reset()
-        state = boxworld_state_to_tensor(state)
+        state = boxworld_state_to_tensor(state).to(device)
         for t in count():
             action = agent.action(state)
             next_state, reward, done, meta = env.step(action.item())
-            next_state = boxworld_state_to_tensor(next_state)
-            reward = torch.Tensor([reward], device=device)
+            next_state = boxworld_state_to_tensor(next_state).to(device)
+            reward = torch.Tensor([reward]).to(device)
             agent.push_transition(state, action, next_state, reward)
             state = next_state
             agent.optimize()
