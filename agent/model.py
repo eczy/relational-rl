@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
@@ -22,7 +23,7 @@ class BasicBlock(nn.Module):
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
         self.conv1 = conv3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
         self.conv2 = conv3x3(planes, planes)
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
@@ -128,12 +129,11 @@ class RelationalBlock(nn.Module):
         x = self.mhdpa(x, x, x)
         # -> x: N, H * W, qkv_dim
         x = x.permute(1, 0, 2)
-        N = x.size(0)
-        for n in range(N):
-            for e in range(self.n_entities):
-                x[n, e] = self.mlps[e](x[n, e])
-        import pdb
-        pdb.set_trace()
+        splits = torch.split(x, 1, dim=1)
+        outs = []
+        for i, split in enumerate(splits):
+            outs.append(self.mlps[i](split))
+        x = torch.cat(outs, dim=1)
         return x
 
 class ResidualBlock(nn.Module):
@@ -170,7 +170,7 @@ class RelationalPolicy(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 256),
             nn.ReLU(),
-            nn.Linear(256, 5)
+            nn.Linear(256, 4)
         )
 
     def forward(self, x):
