@@ -98,71 +98,69 @@ class MHDPA(nn.Module):
         weights = torch.nn.functional.softmax(saliencies, dim=-1)
         return torch.matmul(weights, v), weights
 
-class ResidualMLP(nn.Module):
-    def __init__(self, dim):
+class MLP(nn.Module):
+    def __init__(self, in_dim, out_dim):
         super().__init__()
-        self.dim = dim
+        self.in_dim = in_dim
+        self.out_dim = out_dim
 
-        self.lin1 = nn.Linear(dim, dim)
-        self.lin2 = nn.Linear(dim, dim)
+        self.lin1 = nn.Linear(in_dim, out_dim)
+        self.lin2 = nn.Linear(out_dim, out_dim)
 
     def forward(self, x):
-        y = nn.functional.relu(self.lin1(x))
-        y = nn.functional.relu(self.lin2(x))
-        y = y + x
-        y = nn.functional.layer_norm(y, [y.size(-1)])
-        return y
+        x = nn.functional.relu(self.lin1(x))
+        x = nn.functional.relu(self.lin2(x))
+        return x
 
 class RelationalBlock(nn.Module):
     def __init__(self, n_entities, entity_dim, qkv_dim, n_heads):
         super().__init__()
         self.mhdpa = MHDPA(entity_dim, qkv_dim, n_heads)
         self.mlps = nn.ModuleList([
-            ResidualMLP(qkv_dim) for i in range(n_entities)])
+            MLP(entity_dim, entity_dim) for i in range(n_entities)])
         self.n_entities = n_entities
         
 
     def forward(self, x):
-        N, C, H, W = x.shape
+        # x: N x C x H * W
         # -> x: H * W x N x C
-        x = x.reshape(N, C, -1).permute(2, 0, 1)
-        x = self.mhdpa(x, x, x)
-        # -> x: N, H * W, qkv_dim
-        x = x.permute(1, 0, 2)
-        splits = torch.split(x, 1, dim=1)
+        y = x.permute(2, 0, 1)
+        y = self.mhdpa(y, y, y)
+        # -> x: N, H * W, C
+        y = y.permute(1, 0, 2)
+        splits = torch.split(y, 1, dim=1)
         outs = []
         for i, split in enumerate(splits):
             outs.append(self.mlps[i](split))
-        x = torch.cat(outs, dim=1)
-        return x
+        y = torch.cat(outs, dim=1)
+        y = y.transpose(1, 2)
+        y = y + x
+        y = nn.functional.layer_norm(y, [y.size(-1)])
+        return y
 
 class ResidualBlock(nn.Module):
-    def __init__(self):
+    def __init__(self, n):
         super().__init__()
-        self.net = nn.Sequential(
-            BasicBlock(26, 26),
-            BasicBlock(26, 26),
-            BasicBlock(26, 26)
-        )
+        self.net = nn.Sequential(*[BasicBlock(26, 26) for _ in range(n)])
     
     def forward(self, x):
         return self.net(x)
 
 
 class RelationalPolicy(nn.Module):
-    def __init__(self):
+    def __init__(self, n_relational):
         super().__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 12, (2, 2), 1),
+            nn.Conv2d(3, 6, (2, 2), 1),
             nn.ReLU(),
-            nn.Conv2d(12, 24, (2, 2), 1),
+            nn.Conv2d(6, 24, (2, 2), 1),
             nn.ReLU(),
             ConcatCoords(),
         )
-        self.rb = RelationalBlock(144, 26, 64, 2)
+        self.rb = nn.Sequential(*[RelationalBlock(36, 26, 26, 2) for _ in range(n_relational)])
         self.linear = nn.Sequential(
             ChannelMaxPool(),
-            nn.Linear(64, 256),
+            nn.Linear(26, 256),
             nn.ReLU(),
             nn.Linear(256, 256),
             nn.ReLU(),
@@ -175,21 +173,22 @@ class RelationalPolicy(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
+        N, C = x.shape[:2]
+        x = x.reshape(N, C, -1)
         x = self.rb(x)
-        x = x.transpose(1, 2)
         x = self.linear(x)
         return x
 
 class BaselinePolicy(nn.Module):
-    def __init__(self):
+    def __init__(self, n_residual):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(3, 12, (2, 2), 1),
+            nn.Conv2d(3, 6, (2, 2), 1),
             nn.ReLU(),
-            nn.Conv2d(12, 24, (2, 2), 1),
+            nn.Conv2d(6, 24, (2, 2), 1),
             nn.ReLU(),
             ConcatCoords(),
-            ResidualBlock(),
+            ResidualBlock(n_residual),
             ChannelMaxPool(),
             nn.Linear(26, 256),
             nn.ReLU(),

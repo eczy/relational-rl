@@ -10,7 +10,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class RelationalQLearningAgent(object):
-    def __init__(self, n_actions, gamma, batch_size, eps, eps_min, eps_decay, memory_capacity, device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+    def __init__(self, n_actions, gamma, batch_size, eps, eps_min, eps_decay, memory_capacity, n_relational=2, device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
         self.n_actions = n_actions
         self.gamma = gamma
         self.batch_size = batch_size
@@ -20,8 +20,8 @@ class RelationalQLearningAgent(object):
         self.memory_capacity = memory_capacity
         self.device = device
 
-        self.policy = RelationalPolicy().to(device).double()
-        self.target = RelationalPolicy().to(device).double()
+        self.policy = RelationalPolicy(n_relational).to(device).double()
+        self.target = RelationalPolicy(n_relational).to(device).double()
         self.update_target()
         self.target.eval()
 

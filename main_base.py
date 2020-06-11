@@ -4,6 +4,7 @@ import torch
 from box_world_env import BoxWorld
 from itertools import count
 from agent.BaselineQLearningAgent import BaselineQLearningAgent
+from agent.RelationalQLearningAgent import RelationalQLearningAgent
 
 import torchvision.transforms as transforms
 
@@ -16,16 +17,17 @@ def main():
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    env = BoxWorld(12, 4, 2, 2)
+    env = BoxWorld(6, 4, 2, 2)
     agent = BaselineQLearningAgent(
         n_actions=env.action_space.n,
         gamma=0.99,
         batch_size=128,
         eps=0.9,
         eps_min=0.05,
-        eps_decay=200,
-        memory_capacity=1000,
-        device=device
+        eps_decay=1e8,
+        memory_capacity=1024,
+        device=device,
+        n_residual=3
     )
     env.reset()
 

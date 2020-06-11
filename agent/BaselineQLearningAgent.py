@@ -10,7 +10,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 class BaselineQLearningAgent(object):
-    def __init__(self, n_actions, gamma, batch_size, eps, eps_min, eps_decay, memory_capacity, device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+    def __init__(self, n_actions, gamma, batch_size, eps, eps_min, eps_decay, memory_capacity, n_residual=3, device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
         self.n_actions = n_actions
         self.gamma = gamma
         self.batch_size = batch_size
@@ -20,8 +20,8 @@ class BaselineQLearningAgent(object):
         self.memory_capacity = memory_capacity
         self.device = device
 
-        self.policy = BaselinePolicy().to(device).double()
-        self.target = BaselinePolicy().to(device).double()
+        self.policy = BaselinePolicy(n_residual).to(device).double()
+        self.target = BaselinePolicy(n_residual).to(device).double()
         self.update_target()
         self.target.eval()
 
