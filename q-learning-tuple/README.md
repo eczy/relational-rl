@@ -1,0 +1,1 @@
+HOW TO RUN THE APP? SIMPLY TYPE IN THE TERMINAL, "python3 main.py"!
