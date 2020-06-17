@@ -7,6 +7,18 @@ from collections import deque
 
 from boxworld_gen import *
 
+
+def get_matching_key_info(pos, keys_info):
+  for k in keys_info:
+#    print(k)
+#    print(k[0][0])
+#    print(pos[0])
+    if pos[0] == k[0][0] and pos[1] == k[0][1]:
+      return k
+#  raise Exception('NoMatchingKeyInfo')
+  return None
+
+
 class BoxWorld(gym.Env):
     """Boxworld representation
     Args:
@@ -48,6 +60,8 @@ class BoxWorld(gym.Env):
 
         self.last_frames = deque(maxlen=3)
 
+
+
     def seed(self, seed=None):
         self.np_random_seed = seed
         return [seed]
@@ -83,6 +97,13 @@ class BoxWorld(gym.Env):
                 possible_move = True
                 self.owned_key = self.world[new_position[0], new_position[1]].copy()
                 self.world[0, 0] = self.owned_key
+                key_tup = self.keys_info[self.keys_idx]
+                #print("----")
+                #print(self.keys_info, "goal pos: ", self.goal_position)
+                #print("Setting key info value to True")
+                key_tup[1] = True
+                #print(self.keys_info, "goal pos: ", self.goal_position)
+                #print("----")
                 if np.array_equal(self.world[new_position[0], new_position[1]], goal_color):
                     # Goal reached
                     reward += self.reward_gem
@@ -97,6 +118,15 @@ class BoxWorld(gym.Env):
             if np.array_equal(self.world[new_position[0], new_position[1]], self.owned_key):
                 # The lock matches the key
                 possible_move = True
+
+                key_tup = self.keys_info[self.keys_idx]
+                #print("----")
+                #print(self.keys_info, "goal pos: ", self.goal_position)
+                #print("Setting key info value to False")
+                key_tup[1] = False
+                self.keys_idx += 1
+                #print(self.keys_info, "goal pos: ", self.goal_position)
+                #print("----")
 
                 # goal reached
                 if np.array_equal(self.world[new_position[0], new_position[1]-1], goal_color):
@@ -143,16 +173,19 @@ class BoxWorld(gym.Env):
 
     def reset(self, world=None):
         if world is None:
-            self.world, self.player_position, self.world_dic = world_gen(n=self.n, goal_length=self.goal_length,
+            self.world, self.player_position, self.world_dic, self.goal_position, self.keys = world_gen(n=self.n, goal_length=self.goal_length,
                                                          num_distractor=self.num_distractor,
                                                          distractor_length=self.distractor_length,
                                                      seed=self.np_random_seed)
         else:
-            self.world, self.player_position, self.world_dic = world
+            self.world, self.player_position, self.world_dic, self.goal_position, self.keys = world
 
         self.num_env_steps = 0
         self.episode_reward = 0
         self.owned_key = [220, 220, 220]
+        self.keys_info = [[p, None] for p in self.keys]
+        # Track current key's index in self.keys and self.keys_info
+        self.keys_idx = 0
 
         return (self.world - grid_color[0])/255 * 2
 
