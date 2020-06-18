@@ -22,6 +22,7 @@ def sampling_pairs(num_pair, n=12):
 
     agent_pos = np.array([agent_pos[0]//(n-1), agent_pos[0]%(n-1)])
     first_key = first_key[0]//(n-1), first_key[0]%(n-1)
+
     return keys, locks, first_key, agent_pos
 
 
@@ -56,6 +57,8 @@ def world_gen(n=12, goal_length=3, num_distractor=2, distractor_length=2, seed=N
     for i in range(1, goal_length):
         if i == goal_length - 1:
             color = goal_color  # final key is white
+            goal_position = keys[i-1]
+
         else:
             color = colors[goal_colors[i]]
         # print("place a key with color {} on position {}".format(color, keys[i-1]))
@@ -94,7 +97,9 @@ def world_gen(n=12, goal_length=3, num_distractor=2, distractor_length=2, seed=N
     world = np.concatenate((wall_0, world, wall_0), axis=0)
     world = np.concatenate((wall_1, world, wall_1), axis=1)
 
-    return world, agent_pos, world_dic
+    all_keys = [first_key, *keys]
+
+    return world, agent_pos, world_dic, goal_position, all_keys
 
 def update_color(world, previous_agent_loc, new_agent_loc):
         world[previous_agent_loc[0], previous_agent_loc[1]] = grid_color
@@ -102,3 +107,4 @@ def update_color(world, previous_agent_loc, new_agent_loc):
 
 def is_empty(room):
     return np.array_equal(room, grid_color) or np.array_equal(room, agent_color)
+
