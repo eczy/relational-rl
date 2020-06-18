@@ -1,15 +1,15 @@
 # relational-rl
 
-This repo contains 4 models: 
+This repo contains 4 models:
 * Q-learning
 * SARSA
 * Deep Q-learning
 * Relational Q-learning
 
-Below are the instructions: 
+Below are the instructions:
 1. Open the "relational-rl" directory from terminal
 
-2. Run the following commands to run each of the models: 
+2. Run the following commands to run each of the models:
 * Q-learning
 ```python
 python3 main_TabularQLearning.py
@@ -17,7 +17,7 @@ python3 main_TabularQLearning.py
 
 * SARSA
 ```python
-add commands here
+python3 main_TabularSarsa.py
 ```
 
 * Deep Q-learning
