@@ -9,24 +9,32 @@ This repo contains 4 models:
 Below are the instructions:
 1. Open the "relational-rl" directory from terminal
 
+1. Install dependencies:
+```
+pip install -r requirements.txt
+```
+
 2. Run the following commands to run each of the models:
 * Q-learning
 ```python
-python3 main_TabularQLearning.py
+python main_TabularQLearning.py
 ```
 
 * SARSA
 ```python
-python3 main_TabularSarsa.py
+python main_TabularSarsa.py
 ```
 
 * Deep Q-learning
 ```python
-add commands here
+python main.py baseline
 ```
 
 * Relational Q-learning
 ```python
-add commands here
+python main.py relational
 ```
+
+# Acknowledgement:
+`box_world_env.py` and `boxworld_gen.py` are from Nathan Grinsztajn's BoxWorld implementation found at `https://github.com/nathangrinsztajn/Box-World`.
 

@@ -57,7 +57,7 @@ def main():
     target_update = 10
 
     try:
-        for episode, env in enumerate(generate_env_set(range(episodes), 12, [2], [0, 1, 2], 1)):
+        for episode, env in enumerate(generate_env_set(range(episodes), 6, [2], [0, 1, 2], 1)):
             state = env.reset()
             state = boxworld_state_to_tensor(state).to(device)
             for t in count():
