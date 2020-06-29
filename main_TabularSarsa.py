@@ -8,8 +8,8 @@ from collections import defaultdict
 import json
 
 env_name = "boxplot"
-n_rounds = 2000 # args.rounds
-n_steps = 100000 # args.steps
+n_rounds = 1000 # args.rounds
+n_steps = 1000000 # args.steps
 
 
 # n, goal_length, num_distractor, distractor_length, seed=None
@@ -100,7 +100,8 @@ def run(ca):
                 # print("solved", env.keys_info, "goal pos: ", env.goal_position)
                 break
             elif t == (n_steps - 1):
-                # raise Exception;
+                # we count a Timeout as 'done = True' as well; solved will be False.
+                done = True
                 episode_data.append((reward, done, info))
                 # print("Episode timed out after {} timesteps".format(t+1))
                 # print(f"Episode {i_episode} TIMED OUT after {t + 1} timesteps")
@@ -131,6 +132,19 @@ for r in range(n_rounds):
 
 # total number of episodes that correctly solved
 stat3 = sum(map(lambda k : k[1] == True, stat1))
+
+
+# generate episode_length vs episode_solved:
+episode_lengths = []
+episode_solved = []
+for (done, solved, reward, num_steps) in stat1:
+    episode_lengths.append(num_steps)
+    episode_solved.append(solved)
+import pickle
+pickle.dump({
+    'lengths': episode_lengths,
+    'solved': episode_solved
+    }, open('tabsarsa_eps.pkl', 'wb'))
 
 
 env.close()

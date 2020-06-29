@@ -3,7 +3,7 @@ import gym
 import torch
 import numpy as np
 import pickle
-from box_world_env import BoxWorld
+from boxworld import BoxWorld
 from itertools import count
 from agent.BaselineQLearningAgent import BaselineQLearningAgent
 from agent.RelationalQLearningAgent import RelationalQLearningAgent
@@ -57,7 +57,7 @@ def main():
     target_update = 10
 
     try:
-        for episode, env in enumerate(generate_env_set(range(episodes), 12, [2], [0, 1, 2], 1)):
+        for episode, env in enumerate(generate_env_set(range(episodes), 6, [2], [0, 1, 2], 1)):
             state = env.reset()
             state = boxworld_state_to_tensor(state).to(device)
             for t in count():
