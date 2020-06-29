@@ -3,7 +3,7 @@ import gym
 import torch
 import numpy as np
 import pickle
-from box_world_env import BoxWorld
+from boxworld import BoxWorld
 from itertools import count
 from agent.BaselineQLearningAgent import BaselineQLearningAgent
 from agent.RelationalQLearningAgent import RelationalQLearningAgent
