@@ -1,9 +1,0 @@
-Set Up Environment:
-git clone --recurse-submodules https://<your-github-username>@github.com/eczy/relational-rl.git
-
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh
-chmod +x Miniconda3-latest....sh
-./Miniconda3-latest...sh
-conda create -n cs267 python=3 
-pip install -r requirements.txt
-
